@@ -609,6 +609,12 @@ static const char *getS (lua_State *L, void *ud, size_t *size) {
 
 LUALIB_API int luaL_loadbuffer (lua_State *L, const char *buff, size_t size,
                                 const char *name) {
+  // Binary string / bytecode execution disabled for security (2007E-2012L)
+  // Lua bytecode starts with 0x1B (ESC) - reject to prevent RCE via loadstring
+  if (size > 0 && (unsigned char)buff[0] == 0x1B) {
+    lua_pushliteral(L, "bytecode loading is disabled for security");
+    return LUA_ERRSYNTAX;
+  }
   LoadS ls;
   ls.s = buff;
   ls.size = size;

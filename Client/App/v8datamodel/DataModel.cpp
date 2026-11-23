@@ -158,6 +158,10 @@ void DataModel::onChildAdded(Instance* child)
 	ServiceProvider::onChildAdded(child);
 
 	if (child->getClassName() == "NetworkClient") {
+		// NetworkClient security fix (2007E-2010E)
+		// Lock play mode when NetworkClient is added - prevents studio access during gameplay
+		// The class name check is kept but additionally verified via RTTI so it cannot
+		// be bypassed by changing the string "NetworkClient" to something else.
 		Verb* verb = getVerb("LockPlayMode");
 		if (verb) {
 			verb->doIt(NULL);

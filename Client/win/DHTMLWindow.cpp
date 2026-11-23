@@ -162,10 +162,9 @@ void DHTMLWindow::FUN_0041c1d0()
 // FUNCTION: ROBLOX 0x0041cf60
 boost::shared_ptr<RBX::Instance> DHTMLWindowService::FUN_0041cf60(int width, int height)
 {
-	boost::shared_ptr<DHTMLWindow> window = RBX::Creatable<RBX::Instance>::create<DHTMLWindow>();
-	g_unk0x00952f1c->FUN_00418fd0(boost::bind(&DHTMLWindow::FUN_004153f0, window, width, height));
-	window->setParent(this);
-	return window;
+	// HtmlService disabled for security - HtmlService RCE vulnerability (2007E-2008M)
+	// HtmlService allowed <script> tags leading to remote code execution
+	return boost::shared_ptr<RBX::Instance>();
 }
 
 // FUNCTION: ROBLOX 0x0041d0a0

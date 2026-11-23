@@ -8,6 +8,8 @@
 #include "network/Players.h"
 #include "util/StandardOut.h"
 
+#include "../../App/include/security/SecurityContext.h"
+
 #include <BitStream.h>
 #include <G3D/format.h>
 #include <MessageIdentifiers.h>
@@ -246,6 +248,9 @@ PluginReceiveResult Server::OnReceive(RakPeerInterface* peer, Packet* packet)
 			proxy->setParent(this);
 			proxy->sendTop();
 
+			// IncommingConnection security context fix (2007E-2012L)
+			// Event fired without security context - add GameScript context
+			RBX::Security::Impersonator connImpersonator(RBX::Security::GameScript);
 			event_IncommingConnection.fire(this, packet->systemAddress.ToString(), proxy);
 		}
 		catch (std::exception& e) {

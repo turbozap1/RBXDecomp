@@ -209,12 +209,10 @@ int ScriptContext::print(lua_State* L)
 			throw std::runtime_error("'tostring' must return a string to 'print'");
 		}
 		message += s;
-		if (i > 1) {
-			fputs("\t", stdout);
-		}
 		lua_pop(L, 1);
 	}
 
+	message = "<font face=\"Segoe UI\" size=\"1\">" + message + "</font>";
 	StandardOut::singleton()->print(MESSAGE_OUTPUT, message.c_str());
 
 	return 0;
@@ -262,8 +260,21 @@ void ScriptContext::reportError(lua_State* thread)
 	lua_Debug ar;
 	int level = 0;
 
+	const char* errorMsg = lua_tostring(thread, -1);
+
 	if (lua_getstack(thread, level++, &ar)) {
-		StandardOut::singleton()->print(MESSAGE_ERROR, lua_tostring(thread, -1));
+		lua_getinfo(thread, "nSlu", &ar);
+
+		if (ar.source && ar.source[0] == '=') {
+			StandardOut::singleton()->print(
+				MESSAGE_ERROR, "%s:%d: %s", ar.source + 1, ar.currentline, errorMsg
+			);
+		}
+		else {
+			StandardOut::singleton()->print(
+				MESSAGE_ERROR, "%s:%d: %s", ar.source ? ar.source : "?", ar.currentline, errorMsg
+			);
+		}
 
 		if (DebugSettings::singleton().getStackTracingEnabled()) {
 			if (lua_getstack(thread, level, &ar)) {
@@ -271,16 +282,16 @@ void ScriptContext::reportError(lua_State* thread)
 					level++;
 					lua_getinfo(thread, "nSlu", &ar);
 					StandardOut::singleton()->print(
-						MESSAGE_INFO, "   stack %s, line %d: %s %s", ar.source, ar.currentline, ar.namewhat, ar.name
+						MESSAGE_INFO, "stack =%s, line %d: %s %s", ar.source, ar.currentline, ar.namewhat, ar.name
 					);
 				} while (lua_getstack(thread, level, &ar));
 
-				StandardOut::singleton()->print(MESSAGE_INFO, "   stack end");
+				StandardOut::singleton()->print(MESSAGE_INFO, "stack end");
 			}
 		}
 	}
 	else {
-		StandardOut::singleton()->print(MESSAGE_ERROR, lua_tostring(thread, -1));
+		StandardOut::singleton()->print(MESSAGE_ERROR, "%s", errorMsg);
 	}
 }
 
@@ -646,9 +657,10 @@ void ScriptContext::setThreadIdentity(lua_State* thread, Security::Identities id
 	lua_settable(thread, LUA_GLOBALSINDEX);
 
 	if (DebugSettings::singleton().getioEnabled()) {
-		lua_pushcfunction(thread, luaopen_io);
-		lua_pushstring(thread, "io");
-		lua_call(thread, 1, 0);
+		// io library disabled for security - ioEnabled RCE vulnerability (2007E-2008M)
+		// lua_pushcfunction(thread, luaopen_io);
+		// lua_pushstring(thread, "io");
+		// lua_call(thread, 1, 0);
 	}
 
 	lua_pushstring(thread, "settings");
