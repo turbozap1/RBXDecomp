@@ -96,7 +96,7 @@ void Client::connect(std::string server, int serverPort, int clientPort, int thr
 		throw std::runtime_error("Failed to connect to server");
 	}
 
-	StandardOut::singleton()->print(MESSAGE_INFO, "Connecting to %s:%d", server.c_str(), serverPort);
+	StandardOut::singleton()->print(MESSAGE_INFO, "Connecting to ", server.c_str(), serverPort);
 
 	updateNetworkSimulator();
 }
@@ -164,7 +164,7 @@ PluginReceiveResult Client::OnReceive(RakPeerInterface* peer, Packet* packet)
 	switch (packet->data[0]) {
 	case ID_CONNECTION_REQUEST_ACCEPTED:
 		try {
-			StandardOut::singleton()->print(MESSAGE_INFO, "Connection accepted from %s\n", systemAddress.ToString());
+			StandardOut::singleton()->print(MESSAGE_INFO, "Connection accepted from \n", systemAddress.ToString());
 
 			serverId = systemAddress;
 
@@ -186,7 +186,7 @@ PluginReceiveResult Client::OnReceive(RakPeerInterface* peer, Packet* packet)
 		try {
 			StandardOut::singleton()->print(
 				MESSAGE_ERROR,
-				"Failed to connect to %s. %s\n",
+				"Failed to connect to . %s\n",
 				systemAddress.ToString(),
 				Exposer::IDTOString(packet->data[0])
 			);

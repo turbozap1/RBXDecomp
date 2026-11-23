@@ -87,11 +87,14 @@ void Server::start(int port, int threadSleepTime)
 	outgoingPort = port;
 	StandardOut::singleton()->print(MESSAGE_INFO, "Starting network server on port %d", port);
 
+	// Prevents ur server IP from getting leaked LMAO.
+	/*
 	const unsigned int numAddresses = rakPeer->GetNumberOfAddresses();
 	StandardOut::singleton()->print(MESSAGE_INFO, "IP addresses:");
 	for (unsigned int i = 0; i < numAddresses; ++i) {
 		StandardOut::singleton()->print(MESSAGE_INFO, "%s", rakPeer->GetLocalIP(i));
 	}
+	*/
 
 	updateNetworkSimulator();
 }
@@ -241,7 +244,7 @@ PluginReceiveResult Server::OnReceive(RakPeerInterface* peer, Packet* packet)
 	switch (packet->data[0]) {
 	case ID_NEW_INCOMING_CONNECTION:
 		try {
-			StandardOut::singleton()->print(MESSAGE_INFO, "New connection from %s\n", packet->systemAddress.ToString());
+			StandardOut::singleton()->print(MESSAGE_INFO, "New connection from \n", packet->systemAddress.ToString());
 
 			boost::shared_ptr<ClientProxy> proxy =
 				Creatable<Instance>::create<ClientProxy>(packet->systemAddress, this);
@@ -251,7 +254,8 @@ PluginReceiveResult Server::OnReceive(RakPeerInterface* peer, Packet* packet)
 			// IncommingConnection security context fix (2007E-2012L)
 			// Event fired without security context - add GameScript context
 			RBX::Security::Impersonator connImpersonator(RBX::Security::GameScript);
-			event_IncommingConnection.fire(this, packet->systemAddress.ToString(), proxy);
+
+			//event_IncommingConnection.fire(this, packet->systemAddress.ToString(), proxy); // Another fix for IncommingConnection
 		}
 		catch (std::exception& e) {
 			StandardOut::singleton()->print(

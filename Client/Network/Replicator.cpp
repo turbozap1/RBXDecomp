@@ -1897,14 +1897,14 @@ PluginReceiveResult Replicator::OnReceive(RakPeerInterface* peer, Packet* packet
 
 			case ID_CONNECTION_LOST:
 				StandardOut::singleton()->print(
-					MESSAGE_WARNING, "Lost connection to %s\n", packet->systemAddress.ToString()
+					MESSAGE_WARNING, "Lost connection to \n", packet->systemAddress.ToString()
 				);
 				event_Disconnection.fire(this, packet->systemAddress.ToString(), true);
 				disconnected = true;
 				break;
 
 			case ID_DISCONNECTION_NOTIFICATION:
-				StandardOut::singleton()->print(MESSAGE_INFO, "Disconnect from %s", packet->systemAddress.ToString());
+				StandardOut::singleton()->print(MESSAGE_INFO, "Disconnect from ", packet->systemAddress.ToString());
 				event_Disconnection.fire(this, packet->systemAddress.ToString(), false);
 				disconnected = true;
 				break;
@@ -2041,7 +2041,7 @@ Replicator::Replicator(SystemAddress remotePlayerId, RakPeerInterface* peer)
 {
 	peer->AttachPlugin(this);
 
-	setName(remotePlayerId.ToString());
+	setName("nope"); // removes NetworkServer IP showing.
 
 	profileDataListening->parent = profileReplication.get();
 	profileDataIn->parent = profileReplication.get();
