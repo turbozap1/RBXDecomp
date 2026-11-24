@@ -837,6 +837,50 @@ public:
 
 DECOMP_SIZE_ASSERT(CameraZoomExtentsCommand, 0x1c)
 
+// settings GUI
+class GuiSettingsCommand : public Verb
+{
+private:
+	DataModel* dataModel;
+
+public:
+	GuiSettingsCommand(DataModel* dataModel);
+	virtual void doIt(IDataState* dataState);
+};
+
+// style 2006 button
+class Style2006Command : public Verb
+{
+private:
+	DataModel* dataModel;
+
+public:
+	Style2006Command(DataModel* dataModel);
+	virtual void doIt(IDataState* dataState);
+};
+
+// style March 07 button
+class StyleMarch2007Command : public Verb
+{
+private:
+	DataModel* dataModel;
+
+public:
+	StyleMarch2007Command(DataModel* dataModel);
+	virtual void doIt(IDataState* dataState);
+};
+
+// style Normal button
+class StyleNormalCommand : public Verb
+{
+private:
+	DataModel* dataModel;
+
+public:
+	StyleNormalCommand(DataModel* dataModel);
+	virtual void doIt(IDataState* dataState);
+};
+
 } // namespace RBX
 
 #endif // V8DATAMODEL_COMMANDS_H

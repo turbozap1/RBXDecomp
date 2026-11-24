@@ -68,7 +68,66 @@ void GuiBuilder::buildRightPaletteItems(Adorn* adorn, boost::shared_ptr<TopMenuB
 	cameraPanel->addGuiItem(cameraLeft);
 	cameraPanel->addGuiItem(cameraRight);
 
-	palette->addGuiItem(cameraPanel);
+	// settings button and row to keep horizontal with the camera controls.
+	boost::shared_ptr<ImageButton> settingsButton = 
+		Creatable<Instance>::create<ImageButton>(adorn, getVerb("GuiSettings"), "GuiSettings");
+	settingsButton->setSize(G3D::Vector2(50, 50));
+
+	boost::shared_ptr<TopMenuBar> cameraRow = 
+		Creatable<Instance>::create<TopMenuBar>("CameraRow", Layout::HORIZONTAL);
+
+	cameraRow->addGuiItem(settingsButton);
+	cameraRow->addGuiItem(cameraPanel);
+
+	palette->addGuiItem(cameraRow);
+}
+
+// defining the settings gui
+boost::shared_ptr<TopMenuBar> GuiBuilder::buildSettingsMenu()
+{
+	Layout layout;
+	layout.xLocation = Rect::CENTER;
+	layout.yLocation = Rect::CENTER;
+	layout.offset.x = 0;
+	layout.offset.y = 0;
+	layout.layoutStyle = Layout::VERTICAL;
+	layout.backdropColor = GuiItem::translucentBackdrop();
+
+	// PANEL
+	boost::shared_ptr<RelativePanel> panel = Creatable<Instance>::create<RelativePanel>(layout);
+
+	panel->setName("GuiSettingsPanel");
+
+	// TITLE
+	boost::shared_ptr<TextDisplay> title = Creatable<Instance>::create<TextDisplay>("", "Interface Settings");
+
+	title->setFontColor(GuiItem::menuEnabledFill());
+	title->setFontSize(18);
+	title->setAlign(Adorn::XALIGN_CENTER);
+	title->setGuiSize(G3D::Vector2(400, 40));
+	panel->addGuiItem(title);
+
+	panel->addGuiItem(Creatable<Instance>::create<MenuSpacer>(400, 25)); // spacing
+
+	// BUTTONS
+
+	boost::shared_ptr<MenuItem> styleNormalButton = 
+		Creatable<Instance>::create<MenuItem>(getVerb("StyleNormal"), "Normal (December 2007)");
+	styleNormalButton->setGuiSize(G3D::Vector2(400,30));
+	panel->addGuiItem(styleNormalButton);
+
+	boost::shared_ptr<MenuItem> styleMarchButton = 
+		Creatable<Instance>::create<MenuItem>(getVerb("StyleMarch2007"), "March 2007");
+	styleMarchButton->setGuiSize(G3D::Vector2(400,30));
+	panel->addGuiItem(styleMarchButton);
+
+	boost::shared_ptr<MenuItem> style06Button = 
+		Creatable<Instance>::create<MenuItem>(getVerb("Style2006"), "2006");
+	style06Button->setGuiSize(G3D::Vector2(400,30));
+	panel->addGuiItem(style06Button);
+
+	panel->setVisible(false);
+	return panel;
 }
 
 // FUNCTION: ROBLOX 0x00614ab0
@@ -288,6 +347,7 @@ void GuiBuilder::buildGui(Adorn* adorn, DataModel* dataModel, Workspace* workspa
 	this->dataModel->getGuiRoot()->addGuiItem(buildMenu());
 	this->dataModel->getGuiRoot()->addGuiItem(buildRightPalette(adorn));
 	this->dataModel->getGuiRoot()->addGuiItem(buildControlHud(adorn, 20));
+	this->dataModel->getGuiRoot()->addGuiItem(buildSettingsMenu()); // settings gui
 }
 
 } // namespace RBX

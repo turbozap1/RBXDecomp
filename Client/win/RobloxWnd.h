@@ -71,6 +71,7 @@ public:
 	virtual std::string getMetric(const std::string& metric) const;
 
 protected:
+	afx_msg LRESULT OnInterfaceStyleRendererChanged(WPARAM wParam, LPARAM lParam);
 	afx_msg LRESULT FUN_0045f4d0(WPARAM wParam, LPARAM lParam);
 	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
 	afx_msg void OnSetFocus(CWnd* pOldWnd);
@@ -107,6 +108,17 @@ private:
 		RBX::Stats::Item* m_unk0x134; // 0x134
 		RenderStats* m_unk0x138;      // 0x138
 	};
+
+	void RecreateRendererForStyle();
+	void CreateRendererForStyle(
+		CRenderSettings::GraphicsMode mode,
+		CWnd* parent,
+		const CRect& rect,
+		DWORD style,
+		DWORD exStyle,
+		UINT id,
+		CWorkspace* workspace
+	);
 
 	CRenderSettings::GraphicsMode m_unk0x5c;               // 0x5c
 	int m_unk0x60;                                         // 0x60

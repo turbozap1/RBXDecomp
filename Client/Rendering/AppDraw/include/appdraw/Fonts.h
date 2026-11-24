@@ -10,6 +10,7 @@ class Fonts
 {
 public:
 	static G3D::ReferenceCountedPointer<G3D::GFont> getFont();
+	static void reset() { fontRef = NULL; }
 
 private:
 	static G3D::ReferenceCountedPointer<G3D::GFont> fontRef;

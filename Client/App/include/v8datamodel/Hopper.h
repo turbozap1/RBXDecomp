@@ -41,6 +41,7 @@ protected:
 	int getBinId() const;
 
 public:
+	void resetRendererImage() { guiImageDraw.resetRendererImage(); }
 	void setTextureId(const TextureId& value);
 	const TextureId getTextureId() const;
 

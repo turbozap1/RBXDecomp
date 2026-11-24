@@ -1,5 +1,6 @@
 #include "ChatPrompt.h"
 
+#include "util/InterfaceStyle.h"
 #include "ChatEnter.h"
 #include "network/Player.h"
 #include "network/Players.h"
@@ -38,26 +39,29 @@ BOOL CChatPrompt::PreCreateWindow(CREATESTRUCT& cs)
 // FUNCTION: ROBLOX 0x0040d7d0
 HBRUSH CChatPrompt::CtlColor(CDC* pDC, UINT nCtlColor)
 {
-	// MARCH STYLE
-	if (GetFocus() == this) {
-		pDC->SetTextColor(RGB(0, 0, 0));
-		pDC->SetBkColor(RGB(230, 230, 250));
+	// MARCH/06 STYLE
+	if (RBX::getInterfaceStyle() == RBX::STYLE_MARCH || RBX::getInterfaceStyle() == RBX::STYLE_2006)
+	{
+		if (GetFocus() == this) {
+			pDC->SetTextColor(RGB(0, 0, 0));
+			pDC->SetBkColor(RGB(230, 230, 250));
+		}
+		else {
+			pDC->SetTextColor(RGB(90, 90, 90));
+			pDC->SetBkColor(RGB(230, 230, 250));
+		}
 	}
+	// APRIL 07 AND AHEAD STYLE
 	else {
-		pDC->SetTextColor(RGB(90, 90, 90));
-		pDC->SetBkColor(RGB(230, 230, 250));
+		if (GetFocus() == this) {
+			pDC->SetTextColor(RGB(0, 0, 0));
+			pDC->SetBkColor(RGB(230, 230, 250));
+		}
+		else {
+			pDC->SetTextColor(RGB(255, 255, 200));
+			pDC->SetBkColor(RGB(64, 64, 64));
+		}
 	}
-
-	/*
-	if (GetFocus() == this) {
-		pDC->SetTextColor(RGB(0, 0, 0));
-		pDC->SetBkColor(RGB(230, 230, 250));
-	}
-	else {
-		pDC->SetTextColor(RGB(255, 255, 200));
-		pDC->SetBkColor(RGB(64, 64, 64));
-	}
-	*/
 
 	return m_unk0x94;
 }
@@ -75,18 +79,49 @@ void CChatPrompt::FUN_0040dbe0()
 // FUNCTION: ROBLOX 0x0040dc60
 int CChatPrompt::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
-	//m_unk0x94.CreateSolidBrush(RGB(64, 64, 64));
-	m_unk0x94.CreateSolidBrush(RGB(230, 230, 250)); // march style
-
 	if (CEditView::OnCreate(lpCreateStruct) == -1) {
 		return -1;
 	}
 
-	//SetFont(XTPPaintManager()->GetRegularBoldFont());
-	SetFont(XTPPaintManager()->GetRegularFont()); // march style
+	ApplyInterfaceStyle();
+	SetTimer(1, 100, NULL);
 
 	SetWindowText(g_unk0x00913b50);
 	return 0;
+}
+
+// required to update in real time
+void CChatPrompt::OnTimer(UINT_PTR nIDEvent) 
+{
+	if (nIDEvent == 1 && appliedStyle != RBX::getInterfaceStyle())
+	{
+		ApplyInterfaceStyle();
+	}
+
+	CEditView::OnTimer(nIDEvent);
+}
+
+void CChatPrompt::ApplyInterfaceStyle()
+{
+	appliedStyle = RBX::getInterfaceStyle();
+
+    if (m_unk0x94.GetSafeHandle()) {
+        m_unk0x94.DeleteObject();
+    }
+
+	switch (appliedStyle) {
+		case RBX::STYLE_NORMAL:
+			m_unk0x94.CreateSolidBrush(RGB(64, 64, 64)); // bg color
+			SetFont(XTPPaintManager()->GetRegularBoldFont()); // text
+			break;
+		case RBX::STYLE_MARCH:
+		case RBX::STYLE_2006:
+			m_unk0x94.CreateSolidBrush(RGB(230, 230, 250)); // bg color
+			SetFont(XTPPaintManager()->GetRegularFont()); // text
+			break;
+	}
+
+    Invalidate(TRUE);
 }
 
 // FUNCTION: ROBLOX 0x0040dd10
@@ -108,6 +143,7 @@ BEGIN_MESSAGE_MAP(CChatPrompt, CEditView)
 	ON_CONTROL_REFLECT(EN_SETFOCUS, FUN_0040dbe0)
 	ON_WM_CREATE()
 	ON_WM_CTLCOLOR_REFLECT()
+	ON_WM_TIMER() // message map to update in real time
 END_MESSAGE_MAP()
 // clang-format on
 

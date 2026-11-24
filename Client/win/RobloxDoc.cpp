@@ -15,6 +15,7 @@
 #include "util/RunStateOwner.h"
 #include "util/Sound.h"
 #include "util/StandardOut.h"
+#include "v8datamodel/Commands.h"
 #include "v8datamodel/Selection.h"
 #include "v8datamodel/TimeState.h"
 #include "v8datamodel/Visit.h"
@@ -417,6 +418,12 @@ void CRobloxDoc::FUN_00456d30()
 	m_unk0x64.push_back(new RBX::CameraCenterCommand(m_unk0x78->FUN_0046edf0()));
 	m_unk0x64.push_back(new RBX::CameraZoomExtentsCommand(m_unk0x78->FUN_0046edf0()));
 	m_unk0x64.push_back(new RBX::CameraModelViewCommand(m_unk0x78->FUN_0046edf0()));
+
+	// settings gui commands
+	m_unk0x64.push_back(new RBX::GuiSettingsCommand(dataModel.get())); // settings gui
+	m_unk0x64.push_back(new RBX::Style2006Command(dataModel.get())); // style 06
+	m_unk0x64.push_back(new RBX::StyleMarch2007Command(dataModel.get())); // style march 07
+	m_unk0x64.push_back(new RBX::StyleNormalCommand(dataModel.get())); // style normal
 
 	bind(0xe120, &m_unk0x74->m_unk0x28);
 	bind(0xe12a, &m_unk0x74->m_unk0x50);

@@ -46,6 +46,15 @@ public:
 
 	void render2d(Adorn* adorn, bool enabled, Rect& rect, Widget::WidgetState state);
 
+	void resetRendererImage()
+	{
+		normal = NULL;
+		disable = NULL;
+		hover = NULL;
+		down = NULL;
+		currentTexture = TextureId();
+	}
+
 	void setImageSize(const G3D::Vector2& value) { size = value; }
 	G3D::Vector2 getImageSize() const;
 

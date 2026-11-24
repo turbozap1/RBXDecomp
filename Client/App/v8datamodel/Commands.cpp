@@ -1,5 +1,7 @@
 #include "v8datamodel/Commands.h"
 
+#include "util/InterfaceStyle.h"
+#include "util/StandardOut.h"
 #include "gui/GUI.h"
 #include "network/Player.h"
 #include "network/Players.h"
@@ -1252,6 +1254,71 @@ void CameraZoomExtentsCommand::doIt(IDataState* dataState)
 		dataState->clearStack();
 		dataState->setDirty(true);
 	}
+}
+
+// settings gui
+GuiSettingsCommand::GuiSettingsCommand(DataModel* dataModel) : Verb(dataModel, "GuiSettings"), dataModel(dataModel)
+{
+}
+
+void GuiSettingsCommand::doIt(IDataState* dataState)
+{
+	GuiRoot* root = dataModel->getGuiRoot();
+
+	TopMenuBar* panel = dynamic_cast<TopMenuBar*>(root->findFirstChildByName("GuiSettingsPanel"));
+
+	if(panel) {
+		panel->setVisible(!panel->isVisible());
+	}
+}
+
+namespace {
+	InterfaceStyle currentStyle = STYLE_NORMAL;
+}
+
+InterfaceStyle getInterfaceStyle() {
+	return currentStyle;
+}
+
+void setInterfaceStyle(InterfaceStyle style)
+{
+	currentStyle = style;
+}
+
+// style 2006 command
+Style2006Command::Style2006Command(DataModel* dataModel) : Verb(dataModel, "Style2006"), dataModel(dataModel)
+{
+}
+
+void Style2006Command::doIt(IDataState* dataState)
+{
+	setInterfaceStyle(STYLE_2006);
+
+	StandardOut::singleton()->print(MESSAGE_INFO, "Changed style to 2006.");
+}
+
+// style March 07 command
+StyleMarch2007Command::StyleMarch2007Command(DataModel* dataModel) : Verb(dataModel, "StyleMarch2007"), dataModel(dataModel)
+{
+}
+
+void StyleMarch2007Command::doIt(IDataState* dataState)
+{
+	setInterfaceStyle(STYLE_MARCH);
+
+	StandardOut::singleton()->print(MESSAGE_INFO, "Changed style to March 2007.");
+}
+
+// style Normal command
+StyleNormalCommand::StyleNormalCommand(DataModel* dataModel) : Verb(dataModel, "StyleNormal"), dataModel(dataModel)
+{
+}
+
+void StyleNormalCommand::doIt(IDataState* dataState)
+{
+	setInterfaceStyle(STYLE_NORMAL);
+	
+	StandardOut::singleton()->print(MESSAGE_INFO, "Changed style to Normal (December 2007).");
 }
 
 bool CameraPanLeftCommand::isEnabled() const

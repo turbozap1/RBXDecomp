@@ -1,6 +1,7 @@
 #ifndef CHATPROMPT_H
 #define CHATPROMPT_H
 
+#include "util/InterfaceStyle.h"
 #include "decomp.h"
 
 #include <boost/shared_ptr.hpp>
@@ -25,6 +26,13 @@ class CChatPrompt : public CEditView
 
 	// SYNTHETIC: ROBLOX 0x0040e520
 	// ?CreateObject@CChatPrompt@@SGPAVCObject@@XZ
+
+protected:
+	afx_msg void OnTimer(UINT_PTR nIDEvent);
+
+private:
+	RBX::InterfaceStyle appliedStyle;
+	void ApplyInterfaceStyle();
 
 protected:
 	CChatPrompt();
@@ -60,6 +68,6 @@ private:
 	RBX::Network::Players* m_unk0xa4;            // 0xa4
 };
 
-DECOMP_SIZE_ASSERT(CChatPrompt, 0xa8)
+DECOMP_SIZE_ASSERT(CChatPrompt, 0xac)
 
 #endif // CHATPROMPT_H

@@ -16,10 +16,12 @@
 #include "Workspace.h"
 #include "appdraw/AdornG3D.h"
 #include "appdraw/AdornRbxGfx.h"
+#include "appdraw/Fonts.h"
 #include "appdraw/RbxEntity.h"
 #include "appdraw/RbxSceneManager.h"
 #include "appdraw/RbxSceneNode.h"
 #include "appdraw/VisualEngine.h"
+#include "gui/GUI.h"
 #include "network/Players.h"
 #include "rbxview/View.h"
 #include "reflection/enumconverter.h"
@@ -27,12 +29,14 @@
 #include "renderlib/Profiler.h"
 #include "renderlib/RenderStats.h"
 #include "renderlibnew/Chunk.h"
+#include "util/InterfaceStyle.h"
 #include "util/RunStateOwner.h"
 #include "util/Utilities.h"
 #include "util/scopedassign.h"
 #include "util/standardout.h"
 #include "v8datamodel/Camera.h"
 #include "v8datamodel/GlobalSettings.h"
+#include "v8datamodel/LocalBackpack.h"
 #include "v8datamodel/Stats.h"
 #include "v8datamodel/UserController.h"
 
@@ -44,7 +48,35 @@
 #include <GLG3D/VARArea.h>
 #include <GLG3D/Win32Window.h>
 #include <cstdio>
+#include <set>
 #include <stdexcept>
+
+static UINT g_interfaceStyleRendererMessage = RegisterWindowMessage("RBX.InterfaceStyleRendererChanged");
+static const char* g_interfaceStyleProperty = "RBX.InterfaceStyleApplied";
+static std::set<HWND> g_interfaceStyleRenderWindows;
+
+static CRenderSettings::GraphicsMode rendererForInterfaceStyle()
+{
+	RBX::InterfaceStyle style = RBX::getInterfaceStyle();
+	if (style == RBX::STYLE_2006 || style == RBX::STYLE_MARCH) {
+		return CRenderSettings::c_graphicsModeUnk0x2;
+	}
+	CRenderSettings::GraphicsMode mode = CRenderSettings::singleton().FUN_0044d430();
+	return mode == CRenderSettings::c_graphicsModeUnk0x1 ? CRenderSettings::c_graphicsModeUnk0x3 : mode;
+}
+
+static void resetInterfaceStyleImages(RBX::Instance* instance)
+{
+	if (RBX::BackpackItem* item = dynamic_cast<RBX::BackpackItem*>(instance)) {
+		item->resetRendererImage();
+	}
+	if (RBX::LocalBackpackItem* item = dynamic_cast<RBX::LocalBackpackItem*>(instance)) {
+		item->resetRendererImage();
+	}
+	for (unsigned int i = 0; i < instance->numChildren(); ++i) {
+		resetInterfaceStyleImages(instance->getChild(i));
+	}
+}
 
 static ATL::CCriticalSection g_unk0x0095448c;
 
@@ -135,7 +167,9 @@ void CRobloxWnd::FUN_0045f9f0()
 // FUNCTION: ROBLOX 0x0045faf0
 void CRobloxWnd::FUN_0045faf0()
 {
-	m_unk0x9c->makeCurrent();
+	if (m_unk0x9c) {
+		m_unk0x9c->makeCurrent();
+	}
 	m_unk0x70->buildGui(m_unk0xac.get());
 }
 
@@ -172,7 +206,9 @@ BOOL CRobloxWnd::OnWndMsg(UINT message, WPARAM wParam, LPARAM lParam, LRESULT* p
 	}
 
 	if (m_unk0x70) {
-		m_unk0x9c->makeCurrent();
+		if (m_unk0x9c) {
+			m_unk0x9c->makeCurrent();
+		}
 		if (m_unk0x7c) {
 			m_unk0x7c->FUN_0046cbc0(message, wParam, lParam);
 		}
@@ -323,10 +359,7 @@ CRobloxWnd::CRobloxWnd(bool p_unk0x80)
 	  m_unk0xa0(false), m_unk0xb0(NULL)
 {
 	m_unk0x60 = 0;
-	m_unk0x5c = CRenderSettings::singleton().FUN_0044d430();
-	if (m_unk0x5c == 1) {
-		m_unk0x5c = CRenderSettings::c_graphicsModeUnk0x3;
-	}
+	m_unk0x5c = rendererForInterfaceStyle();
 }
 
 // FUNCTION: ROBLOX 0x00460d10
@@ -391,6 +424,13 @@ void CRobloxWnd::OnTimer(UINT_PTR nIDEvent)
 		FUN_00460d30();
 		break;
 	case 1:
+		if (m_unk0x70 && !m_unk0x81) {
+			HANDLE style = reinterpret_cast<HANDLE>(static_cast<INT_PTR>(RBX::getInterfaceStyle()) + 1);
+			if (::GetProp(m_hWnd, g_interfaceStyleProperty) != style &&
+				::SetProp(m_hWnd, g_interfaceStyleProperty, style)) {
+				PostMessage(g_interfaceStyleRendererMessage);
+			}
+		}
 		if (m_unk0x70 && m_unk0x7c) {
 			m_unk0x7c->FUN_0046d0a0();
 		}
@@ -564,6 +604,10 @@ int CRobloxWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 		return -1;
 	}
 
+	g_interfaceStyleRenderWindows.insert(m_hWnd);
+	::SetProp(
+		m_hWnd, g_interfaceStyleProperty, reinterpret_cast<HANDLE>(static_cast<INT_PTR>(RBX::getInterfaceStyle()) + 1)
+	);
 	SetTimer(0, 200, NULL);
 	SetTimer(1, 100, NULL);
 	return 0;
@@ -963,7 +1007,9 @@ void CRobloxWnd::FUN_00463c30(CWorkspace* workspace)
 			if (RBX::ControllerService* controllers = m_unk0x70 ? m_unk0x70->find<RBX::ControllerService>() : NULL) {
 				controllers->setHardwareDevice(NULL);
 			}
-			m_unk0x9c->makeCurrent();
+			if (m_unk0x9c) {
+				m_unk0x9c->makeCurrent();
+			}
 			m_unk0xa8.reset();
 			removeRunView(m_unk0x70.get(), this);
 			m_unk0x7c.reset();
@@ -1024,25 +1070,139 @@ CRobloxWnd::~CRobloxWnd()
 // FUNCTION: ROBLOX 0x00464180
 void CRobloxWnd::OnDestroy()
 {
+	g_interfaceStyleRenderWindows.erase(m_hWnd);
+	::RemoveProp(m_hWnd, g_interfaceStyleProperty);
+	KillTimer(0);
+	KillTimer(1);
 	FUN_00460430();
 	FUN_00463c30(NULL);
+	m_unk0xac.reset();
 
-	if (m_unk0x5c == 2) {
+	if (m_unk0x5c == CRenderSettings::c_graphicsModeUnk0x2) {
 		FUN_00460360();
-		CWnd::OnDestroy();
+	}
+	else if (m_unk0xb0) {
+		delete m_unk0xb0;
+		m_unk0xb0 = NULL;
+	}
+	CWnd::OnDestroy();
+}
+
+void CRobloxWnd::CreateRendererForStyle(
+	CRenderSettings::GraphicsMode mode,
+	CWnd* parent,
+	const CRect& rect,
+	DWORD style,
+	DWORD exStyle,
+	UINT id,
+	CWorkspace* workspace
+)
+{
+	m_unk0x5c = mode;
+	m_unk0x60 = 0;
+	m_unk0x78 = true;
+	m_unk0x81 = false;
+	m_unk0x82 = false;
+	m_unk0x83 = true;
+	if (!CreateEx(exStyle, NULL, "Roblox", style, rect, parent, id)) {
+		throw std::runtime_error("Unable to recreate the graphics window");
+	}
+	FUN_00463c30(workspace);
+	FUN_0045faf0();
+}
+
+void CRobloxWnd::RecreateRendererForStyle()
+{
+	CRenderSettings::GraphicsMode requested = rendererForInterfaceStyle();
+	if (requested == m_unk0x5c || !m_unk0x70 || !m_unk0x6c) {
+		return;
+	}
+	if (g_interfaceStyleRenderWindows.size() != 1) {
+		RBX::StandardOut::singleton()->print(
+			RBX::MESSAGE_WARNING,
+			"Automatic graphics switching requires a single open render window. Close the other place views first."
+		);
 		return;
 	}
 
-	if (m_unk0xb0) {
-		m_unk0xac.reset();
-		delete m_unk0xb0;
+	boost::shared_ptr<RBX::DataModel> model = m_unk0x70;
+	CComPtr<IWorkspace> workspaceOwner = m_unk0x6c;
+	CWorkspace* workspace = static_cast<CWorkspace*>(workspaceOwner.p);
+	RBX::DataModel::Lock lock(model);
+	CRenderSettings::GraphicsMode previous = m_unk0x5c;
+	CWnd* parent = GetParent();
+	CRect rect;
+	GetWindowRect(&rect);
+	parent->ScreenToClient(&rect);
+	DWORD style = GetStyle();
+	DWORD exStyle = GetExStyle();
+	UINT id = GetDlgCtrlID();
+	bool focused = GetFocus() == this;
+	RBX::TopMenuBar* settings =
+		dynamic_cast<RBX::TopMenuBar*>(model->getGuiRoot()->findFirstChildByName("GuiSettingsPanel"));
+	bool settingsVisible = settings && settings->isVisible();
+
+	if (m_unk0x9c) {
+		m_unk0x9c->makeCurrent();
+	}
+	resetInterfaceStyleImages(model.get());
+	model->getGuiRoot()->removeAllChildren();
+	if (m_unk0x5c == CRenderSettings::c_graphicsModeUnk0x2) {
+		RBX::Fonts::reset();
+		RBX::Render::Mesh::vertexVAR = G3D::VAR();
+		RBX::Render::Mesh::normalVAR = G3D::VAR();
+		RBX::Render::Mesh::texCoordVAR = G3D::VAR();
+		RBX::Render::Mesh::tangentVAR = G3D::VAR();
+		RBX::Render::Mesh::varDirty = true;
+	}
+	if (!DestroyWindow()) {
+		throw std::runtime_error("Unable to release the old graphics window");
+	}
+	try {
+		CreateRendererForStyle(requested, parent, rect, style, exStyle, id, workspace);
+	}
+	catch (std::exception& error) {
+		RBX::StandardOut::singleton()->print(
+			RBX::MESSAGE_ERROR, "Style graphics switch failed: %s. Restoring the previous renderer.", error.what()
+		);
+		model->getGuiRoot()->removeAllChildren();
+		if (GetSafeHwnd()) {
+			DestroyWindow();
+		}
+		CreateRendererForStyle(previous, parent, rect, style, exStyle, id, workspace);
 	}
 
-	CWnd::OnDestroy();
+	settings = dynamic_cast<RBX::TopMenuBar*>(model->getGuiRoot()->findFirstChildByName("GuiSettingsPanel"));
+	if (settings) {
+		settings->setVisible(settingsVisible);
+	}
+	if (focused) {
+		SetFocus();
+	}
+	Invalidate(FALSE);
+	RBX::StandardOut::singleton()->print(
+		RBX::MESSAGE_INFO, "Interface style renderer: %s", getMetric("graphicsMode").c_str()
+	);
+}
+
+LRESULT CRobloxWnd::OnInterfaceStyleRendererChanged(WPARAM wParam, LPARAM lParam)
+{
+	if (m_unk0x81) {
+		::RemoveProp(m_hWnd, g_interfaceStyleProperty);
+		return 0;
+	}
+	try {
+		RecreateRendererForStyle();
+	}
+	catch (std::exception& error) {
+		RBX::StandardOut::singleton()->print(RBX::MESSAGE_ERROR, "Unable to recreate graphics: %s", error.what());
+	}
+	return 0;
 }
 
 // clang-format off
 BEGIN_MESSAGE_MAP(CRobloxWnd, CWnd)
+    ON_REGISTERED_MESSAGE(g_interfaceStyleRendererMessage, OnInterfaceStyleRendererChanged)
 	ON_WM_CREATE()
 	ON_WM_DESTROY()
 	ON_WM_ERASEBKGND()

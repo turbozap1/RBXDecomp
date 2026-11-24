@@ -27,6 +27,7 @@ private:
 	boost::shared_ptr<TopMenuBar> buildScoreHud();
 	boost::shared_ptr<TopMenuBar> buildScoreHud(int offset);
 	boost::shared_ptr<TopMenuBar> buildControlHud(Adorn* adorn, int offset);
+	boost::shared_ptr<TopMenuBar> buildSettingsMenu(); // settings gui
 	boost::shared_ptr<TopMenuBar> buildMessageHud(int offset);
 	boost::shared_ptr<TopMenuBar> buildChatHud();
 	void buildChatMenu(ChatOption* option, std::string prefix, boost::shared_ptr<UnifiedWidget> parent);

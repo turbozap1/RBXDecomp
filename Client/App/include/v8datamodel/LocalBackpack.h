@@ -39,6 +39,7 @@ private:
 	int getBinId() const { return getParent()->findChildIndex(this) + 1; }
 
 public:
+	void resetRendererImage() { guiImageDraw.resetRendererImage(); }
 	LocalBackpackItem();
 
 	// FUNCTION: WEBSERVICE 0x100d63b0
